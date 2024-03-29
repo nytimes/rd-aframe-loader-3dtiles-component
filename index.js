@@ -54,6 +54,12 @@ AFRAME.registerComponent('loader-3dtiles', {
       this.camera = e.detail.cameraEl.object3D.children[0] ?? this.originalCamera;
     });
 
+    this.el.addEventListener('cameraChange', (e) => {
+      if (e.detail.type === 'PerspectiveCamera') {
+        this.camera = e.detail;
+      }
+    });
+
     this.el.sceneEl.addEventListener('enter-vr', (e) => {
       this.originalCamera = this.camera;
       try {
