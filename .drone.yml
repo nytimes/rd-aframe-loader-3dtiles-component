@@ -4,13 +4,13 @@ name: default
    
 steps:
   - name: install
-    image: node:12
+    image: node:18
     commands:
       - npm install -g npm@latest 
         && npm install
 
   - name: lint
-    image: node:12
+    image: node:18
     commands:
       - npm run lint
     when:
@@ -19,7 +19,7 @@ steps:
       - dev
 
   - name: build
-    image: node:12
+    image: node:18
     commands:
       - npm run dist
     when:
@@ -28,7 +28,7 @@ steps:
       - dev
 
   - name: test
-    image: node:12
+    image: node:18
     commands:
       - apt-get update 
         && apt-get install -y wget gnupg 
@@ -48,8 +48,6 @@ steps:
     settings:
       token: 
         from_secret: npm_token
-      email: 
-        from_secret: npm_email
     when:
       event:
       - tag
