@@ -55,9 +55,35 @@ AFRAME.registerComponent('loader-3dtiles', {
     });
 
     this.el.addEventListener('cameraChange', (e) => {
-      if (e.detail.type === 'PerspectiveCamera') {
+      if (e.detail.type === 'OrthographicCamera') {
+        this.orthoCamera = e.detail;
+        // create dummy Perspective camera, because 3d tiles can not work with Orthographic camera
+        const perspectiveCamera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 1, 300);
+        this.camera = perspectiveCamera;
+
+        this.el.sceneEl.object3D.add(perspectiveCamera);
+
+        // create camera helper
+        /*var helper = new THREE.CameraHelper(this.camera);
+        this.el.setObject3D('helper', helper);*/
+
+        if (this.orthoCamera.rotation.x < -1) {
+          // Plan View mode
+          // raise the camera to increase the field of view and update a larger area of tiles
+          this.orthoCamera.position.y = 100; 
+
+        } else {
+          // Cross Section mode
+          this.orthoCamera.position.y = 10; // default value for ortho camera in Editor
+        }
+        
+        // call update dummy camera here. And in every tick when we have Orthographic camera
+        this.updateDummyCamera();
+      } else {
+        // stop updating the dummy camera if it is not in use
+        this.orthoCamera = null;
         this.camera = e.detail;
-      }
+      }      
     });
 
     this.el.sceneEl.addEventListener('enter-vr', (e) => {
@@ -92,6 +118,19 @@ AFRAME.registerComponent('loader-3dtiles', {
     await this._nextFrame();
     this.runtime = runtime;
     this.runtime.setElevationRange(this.data.pointcloudElevationRange.map(n => Number(n)));
+
+  },
+
+  // update position and rotation of dummy Perspective camera from Orthographic camera
+  updateDummyCamera: function () {
+
+    let orthoPosition = this.orthoCamera.getWorldPosition(new THREE.Vector3());
+    let orthoRotation = this.orthoCamera.getWorldQuaternion(new THREE.Quaternion());
+
+    // set position and rotation of dummy Perspective camera
+    this.camera.position.copy(orthoPosition);
+    this.camera.quaternion.copy(orthoRotation);
+
   },
   update: async function (oldData) {
     if (oldData.url !== this.data.url) {
@@ -135,6 +174,9 @@ AFRAME.registerComponent('loader-3dtiles', {
     }
   },
   tick: function (t, dt) {
+    if (this.orthoCamera) {
+      this.updateDummyCamera();
+    }
     if (this.runtime) {
       this.runtime.update(dt, this.el.sceneEl.clientHeight, this.camera);
       if (this.stats) {
