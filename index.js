@@ -33,7 +33,8 @@ AFRAME.registerComponent('loader-3dtiles', {
     lat: { type: 'number' },
     long: { type: 'number' },
     height: { type: 'number' },
-    geoTransform: { type: 'string', default: 'Reset' }
+    geoTransform: { type: 'string', default: 'Reset' },
+    subtractBox: {type: 'selector'}
   },
   init: async function () {
     this.camera = this.data.cameraEl?.object3D.children[0] ?? document.querySelector('a-scene').camera;
@@ -86,6 +87,41 @@ AFRAME.registerComponent('loader-3dtiles', {
     await this._nextFrame();
     this.runtime = runtime;
     this.runtime.setElevationRange(this.data.pointcloudElevationRange.map(n => Number(n)));
+
+  },
+  setSubtractShaders: function () {
+    this.fragmentShader = `
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    varying vec2 vUv;
+
+    uniform sampler2D map;
+    uniform vec3 boxMin;
+    uniform vec3 boxMax;
+
+    void main() {
+        // Check if the fragment position is inside the bounding box
+        if (vPosition.x > boxMin.x && vPosition.y > boxMin.y && vPosition.z > boxMin.z &&
+            vPosition.x < boxMax.x && vPosition.y < boxMax.y && vPosition.z < boxMax.z) {
+            discard; // Discard the fragment if inside the bounding box
+        }
+
+        // Otherwise, keep the fragment color
+        gl_FragColor = texture2D(map, vUv);
+    }`
+    this.vertexShader = `
+      varying vec3 vNormal;
+      varying vec3 vPosition;
+      varying vec2 vUv;
+
+      void main() {
+          vUv = uv;
+          vNormal = normalize(normalMatrix * normal);
+          vPosition = position;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `;
+
   },
   update: async function (oldData) {
     if (oldData.url !== this.data.url) {
@@ -116,6 +152,9 @@ AFRAME.registerComponent('loader-3dtiles', {
 
     // set parameters for google 3dtiles API
     if (this.data.lat && this.data.long && this.data.height) {
+      // create shanders for subtract box
+      this.setSubtractShaders();
+
       // eslint-disable-next-line no-unused-vars
       const { model, runtime } = await this._initTileset();
 
@@ -147,6 +186,23 @@ AFRAME.registerComponent('loader-3dtiles', {
       }
     }
   },
+  shaderCallback: function (renderer, material) {
+    if (this.data.subtractBox) {
+      const threeBox = new THREE.Box3().setFromObject(this.data.subtractBox.object3D);
+
+      const uniforms = {
+        boxMin: {value: threeBox.min || new THREE.Vector3()},
+        boxMax: {value: threeBox.max || new THREE.Vector3()}
+      };    
+      const fragmentShader = this.fragmentShader;
+      const vertexShader = this.vertexShader;
+      material.onBeforeCompile = function(shader) {
+          shader.uniforms = THREE.UniformsUtils.merge([shader.uniforms, uniforms]);
+          shader.fragmentShader = fragmentShader; 
+          shader.vertexShader = vertexShader;
+      }
+    }
+  },
   remove: function () {
     if (this.runtime) {
       this.runtime.dispose();
@@ -162,6 +218,7 @@ AFRAME.registerComponent('loader-3dtiles', {
     }
   },
   _initTileset: async function () {
+    this.shaderCallback = this.shaderCallback.bind(this);
     const pointCloudColoring = this._resolvePointcloudColoring(this.data.pointcloudColoring);
     return Loader3DTiles.load({
       url: this.data.url,
@@ -178,7 +235,10 @@ AFRAME.registerComponent('loader-3dtiles', {
         viewDistanceScale: this.data.distanceScale,
         wireframe: this.data.wireframe,
         updateTransforms: true,
-        geoTransform: GeoTransform[this.data.geoTransform]
+        geoTransform: GeoTransform[this.data.geoTransform],
+        shaderCallback: this.shaderCallback,
+        shading: 2,
+        transparent: true
       }
     });
   },
