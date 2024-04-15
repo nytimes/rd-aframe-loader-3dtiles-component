@@ -32,7 +32,8 @@ AFRAME.registerComponent('loader-3dtiles', {
     googleApiKey: { type: 'string' },
     lat: { type: 'number' },
     long: { type: 'number' },
-    height: { type: 'number' }
+    height: { type: 'number' },
+    copyrightEl: { type: 'selector' }
   },
   init: async function () {
     const sceneEl = this.el.sceneEl;
@@ -118,6 +119,7 @@ AFRAME.registerComponent('loader-3dtiles', {
 
       await this._nextFrame();
       this.runtime = runtime;
+      window.runtime = runtime;
     } else if (this.runtime) {
       this.runtime.setPointCloudColoring(this._resolvePointcloudColoring(this.data.pointCloudColoring));
       this.runtime.setWireframe(this.data.wireframe);
@@ -163,6 +165,9 @@ AFRAME.registerComponent('loader-3dtiles', {
         newPos.copy(worldPos);
         newPos.z -= 2;
         this.stats.setAttribute('position', newPos);
+      }
+      if (this.data.copyrightEl) {
+        this.data.copyrightEl.innerHTML = this.runtime.getDataAttributions() ?? '';
       }
     }
   },
