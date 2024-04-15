@@ -1,6 +1,6 @@
 import { Loader3DTiles, PointCloudColoring } from 'three-loader-3dtiles';
 import './textarea';
-import { Vector3 } from 'three';
+import { Vector2, Vector3 } from 'three';
 
 if (typeof AFRAME === 'undefined') {
   throw new Error('Component attempted to register before AFRAME was available.');
@@ -96,6 +96,15 @@ AFRAME.registerComponent('loader-3dtiles', {
     this.runtime = runtime;
     this.runtime.setElevationRange(data.pointcloudElevationRange.map(n => Number(n)));
 
+    this.viewportSize = new Vector2(sceneEl.clientWidth, sceneEl.clientHeight);
+    window.addEventListener('resize', this.onWindowResize.bind(this));
+
+  },
+  onWindowResize: function () {
+    const sceneEl = this.el.sceneEl;
+    this.viewportSize.set(sceneEl.clientWidth, sceneEl.clientHeight);
+    this.camera.aspect = sceneEl.clientWidth / sceneEl.clientHeight;
+    this.camera.updateProjectionMatrix();
   },
   update: async function (oldData) {
     if (oldData.url !== this.data.url) {
@@ -140,7 +149,7 @@ AFRAME.registerComponent('loader-3dtiles', {
   },
   tick: function (t, dt) {
     if (this.runtime) {
-      this.runtime.update(dt, this.el.sceneEl.clientHeight, this.camera);
+      this.runtime.update(dt, this.viewportSize, this.camera);
       if (this.stats) {
         const worldPos = new Vector3();
         this.camera.getWorldPosition(worldPos);
