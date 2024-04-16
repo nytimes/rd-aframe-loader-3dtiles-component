@@ -1,6 +1,6 @@
-import { Loader3DTiles, PointCloudColoring, GeoTransform } from 'three-loader-3dtiles';
+import { Loader3DTiles, PointCloudColoring } from 'three-loader-3dtiles';
 import './textarea';
-import { Vector3 } from 'three';
+import { Vector2, Vector3 } from 'three';
 
 if (typeof AFRAME === 'undefined') {
   throw new Error('Component attempted to register before AFRAME was available.');
@@ -33,20 +33,24 @@ AFRAME.registerComponent('loader-3dtiles', {
     lat: { type: 'number' },
     long: { type: 'number' },
     height: { type: 'number' },
-    geoTransform: { type: 'string', default: 'Reset' }
+    copyrightEl: { type: 'selector' }
   },
   init: async function () {
-    this.camera = this.data.cameraEl?.object3D.children[0] ?? document.querySelector('a-scene').camera;
+    const sceneEl = this.el.sceneEl;
+    const data = this.data;
+
+    this.camera = data.cameraEl?.object3D.children[0] ?? document.querySelector('a-scene').camera;
     if (!this.camera) {
       throw new Error('3D Tiles: Please add an active camera or specify the target camera via the cameraEl property');
     }
+
     const { model, runtime } = await this._initTileset();
 
     this.el.setObject3D('tileset', model);
 
     this.originalCamera = this.camera;
 
-    this.el.sceneEl.addEventListener('camera-set-active', (e) => {
+    sceneEl.addEventListener('camera-set-active', (e) => {
       // TODO: For some reason after closing the inspector this event is fired with an empty camera,
       // so revert to the original camera used.
       //
@@ -55,45 +59,19 @@ AFRAME.registerComponent('loader-3dtiles', {
     });
 
     this.el.addEventListener('cameraChange', (e) => {
-      if (e.detail.type === 'OrthographicCamera') {
-        this.orthoCamera = e.detail;
-        // create dummy Perspective camera, because 3d tiles can not work with Orthographic camera
-        const perspectiveCamera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 1, 300);
-        this.camera = perspectiveCamera;
-
-        this.el.sceneEl.object3D.add(perspectiveCamera);
-
-        // create camera helper
-        /*var helper = new THREE.CameraHelper(this.camera);
-        this.el.setObject3D('helper', helper);*/
-
-        if (this.orthoCamera.rotation.x < -1) {
-          // Plan View mode
-          // raise the camera to increase the field of view and update a larger area of tiles
-          this.orthoCamera.position.y = 100; 
-
-        } else {
-          // Cross Section mode
-          this.orthoCamera.position.y = 10; // default value for ortho camera in Editor
-        }
-        
-        // call update dummy camera here. And in every tick when we have Orthographic camera
-        this.updateDummyCamera();
-      } else {
-        // stop updating the dummy camera if it is not in use
-        this.orthoCamera = null;
+      if (e.detail.type === 'PerspectiveCamera') {
         this.camera = e.detail;
-      }      
+      }
     });
 
-    this.el.sceneEl.addEventListener('enter-vr', (e) => {
+    sceneEl.addEventListener('enter-vr', (e) => {
       this.originalCamera = this.camera;
       try {
-        this.camera = this.el.sceneEl.renderer.xr.getCamera(this.camera);
+        this.camera = sceneEl.renderer.xr.getCamera(this.camera);
 
         // FOV Code from https://github.com/mrdoob/three.js/issues/21869
-        this.el.sceneEl.renderer.xr.getSession().requestAnimationFrame((time, frame) => {
-          const ref = this.el.sceneEl.renderer.xr.getReferenceSpace();
+        sceneEl.renderer.xr.getSession().requestAnimationFrame((time, frame) => {
+          const ref = sceneEl.renderer.xr.getReferenceSpace();
           const pose = frame.getViewerPose(ref);
           if (pose) {
             const fovi = pose.views[0].projectionMatrix[5];
@@ -104,11 +82,11 @@ AFRAME.registerComponent('loader-3dtiles', {
         console.warn('Could not get VR camera');
       }
     });
-    this.el.sceneEl.addEventListener('exit-vr', (e) => {
+    sceneEl.addEventListener('exit-vr', (e) => {
       this.camera = this.originalCamera;
     });
 
-    if (this.data.showStats) {
+    if (data.showStats) {
       this.stats = this._initStats();
     }
     if (THREE.Cache.enabled) {
@@ -117,20 +95,17 @@ AFRAME.registerComponent('loader-3dtiles', {
     }
     await this._nextFrame();
     this.runtime = runtime;
-    this.runtime.setElevationRange(this.data.pointcloudElevationRange.map(n => Number(n)));
+    this.runtime.setElevationRange(data.pointcloudElevationRange.map(n => Number(n)));
+
+    this.viewportSize = new Vector2(sceneEl.clientWidth, sceneEl.clientHeight);
+    window.addEventListener('resize', this.onWindowResize.bind(this));
 
   },
-
-  // update position and rotation of dummy Perspective camera from Orthographic camera
-  updateDummyCamera: function () {
-
-    let orthoPosition = this.orthoCamera.getWorldPosition(new THREE.Vector3());
-    let orthoRotation = this.orthoCamera.getWorldQuaternion(new THREE.Quaternion());
-
-    // set position and rotation of dummy Perspective camera
-    this.camera.position.copy(orthoPosition);
-    this.camera.quaternion.copy(orthoRotation);
-
+  onWindowResize: function () {
+    const sceneEl = this.el.sceneEl;
+    this.viewportSize.set(sceneEl.clientWidth, sceneEl.clientHeight);
+    this.camera.aspect = sceneEl.clientWidth / sceneEl.clientHeight;
+    this.camera.updateProjectionMatrix();
   },
   update: async function (oldData) {
     if (oldData.url !== this.data.url) {
@@ -174,11 +149,8 @@ AFRAME.registerComponent('loader-3dtiles', {
     }
   },
   tick: function (t, dt) {
-    if (this.orthoCamera) {
-      this.updateDummyCamera();
-    }
     if (this.runtime) {
-      this.runtime.update(dt, this.el.sceneEl.clientHeight, this.camera);
+      this.runtime.update(dt, this.viewportSize, this.camera);
       if (this.stats) {
         const worldPos = new Vector3();
         this.camera.getWorldPosition(worldPos);
@@ -192,6 +164,9 @@ AFRAME.registerComponent('loader-3dtiles', {
         newPos.copy(worldPos);
         newPos.z -= 2;
         this.stats.setAttribute('position', newPos);
+      }
+      if (this.data.copyrightEl) {
+        this.data.copyrightEl.innerHTML = this.runtime.getDataAttributions() ?? '';
       }
     }
   },
@@ -225,8 +200,7 @@ AFRAME.registerComponent('loader-3dtiles', {
         pointCloudColoring: pointCloudColoring,
         viewDistanceScale: this.data.distanceScale,
         wireframe: this.data.wireframe,
-        updateTransforms: true,
-        geoTransform: GeoTransform[this.data.geoTransform]
+        updateTransforms: true
       }
     });
   },
