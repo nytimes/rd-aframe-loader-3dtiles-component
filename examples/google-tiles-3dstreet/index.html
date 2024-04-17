@@ -12,6 +12,7 @@
 
     <!-- vr teleport controls -->
     <script src="https://cdn.jsdelivr.net/npm/aframe-blink-controls@0.4.3/dist/aframe-blink-controls.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
 
     <style>
       #guide {
@@ -31,6 +32,7 @@
       }
 
       #data-attribution {
+        font-family: Roboto;
         position: absolute;
         bottom: 0;
         left: 0;
@@ -40,8 +42,18 @@
         color: white;
         z-index: 1;
       }
-    </style>
 
+      #googleLogo {
+        display: inline;        
+        font-style: normal;
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 16px;
+        padding: 16px;
+        letter-spacing: 0.0575em; /* 0.69px */
+        color: #FFFFFF;
+      }
+    </style>
 
     <script>
       // this makes the same camera rig setup work in VR and desktop modes
@@ -68,7 +80,10 @@
   </head>
 
   <body>
-    <div id="data-attribution">Data attribution: <span id="copyright"></span></div>
+    <div id="data-attribution">
+      <div id="googleLogo">Google</div>
+      Data attribution: <span id="copyright"></span>
+    </div>
 
     <!-- loading animation start -->
     <div class="loader__wrapper">
