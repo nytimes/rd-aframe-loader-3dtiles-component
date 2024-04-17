@@ -22,10 +22,12 @@ suite('3dtiles component', function () {
   });
 
   suite('model', function () {
-    test('is loaded', function () {
+    test('model is loaded from tileset', function (done) {
       const tileset = document.querySelector('[loader-3dtiles]');
       tileset.addEventListener('object3dset', function (evt) {
         assert.equal(tileset.object3D.children.length, 1);
+        console.log('Tileset uuid: ', tileset.object3D.uuid);
+        done();
       });
     });
   });
