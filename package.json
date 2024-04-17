@@ -78,7 +78,7 @@
     "snazzy": "^5.0.0",
     "superagent": "^3.8.2",
     "three": "^0.160.1",
-    "three-loader-3dtiles": "^1.2.1",
+    "three-loader-3dtiles": "^1.2.3",
     "webpack": "^5.64.1",
     "webpack-cli": "^4.7.0",
     "webpack-dev-server": "^4.5.0"
