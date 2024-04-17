@@ -1,4 +1,4 @@
-import { Loader3DTiles, PointCloudColoring } from 'three-loader-3dtiles';
+import { Loader3DTiles, PointCloudColoring } from './dist/three-loader-3dtiles';
 import './textarea';
 import { Vector2, Vector3 } from 'three';
 
@@ -59,8 +59,17 @@ AFRAME.registerComponent('loader-3dtiles', {
     });
 
     this.el.addEventListener('cameraChange', (e) => {
-      if (e.detail.type === 'PerspectiveCamera') {
-        this.camera = e.detail;
+      this.camera = e.detail;
+      window.camera = this.camera;
+      if (this.camera.type === 'OrthographicCamera') {
+        if (this.camera.rotation.x < -1) {
+          // Plan View mode
+          // raise the camera to increase the field of view and update a larger area of tiles
+          this.camera.position.y = 100; 
+        } else {
+          // Cross Section mode
+          this.camera.position.y = 10; // default value for ortho camera in Editor
+        }
       }
     });
 
@@ -119,7 +128,6 @@ AFRAME.registerComponent('loader-3dtiles', {
 
       await this._nextFrame();
       this.runtime = runtime;
-      window.runtime = runtime;
     } else if (this.runtime) {
       this.runtime.setPointCloudColoring(this._resolvePointcloudColoring(this.data.pointCloudColoring));
       this.runtime.setWireframe(this.data.wireframe);
