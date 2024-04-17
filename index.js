@@ -60,7 +60,6 @@ AFRAME.registerComponent('loader-3dtiles', {
 
     this.el.addEventListener('cameraChange', (e) => {
       this.camera = e.detail;
-      window.camera = this.camera;
       if (this.camera.type === 'OrthographicCamera') {
         if (this.camera.rotation.x < -1) {
           // Plan View mode
