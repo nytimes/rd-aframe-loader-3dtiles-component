@@ -64,7 +64,7 @@ AFRAME.registerComponent('loader-3dtiles', {
         if (this.camera.rotation.x < -1) {
           // Plan View mode
           // raise the camera to increase the field of view and update a larger area of tiles
-          this.camera.position.y = 100; 
+          this.camera.position.y = 100;
         } else {
           // Cross Section mode
           this.camera.position.y = 10; // default value for ortho camera in Editor
@@ -107,7 +107,6 @@ AFRAME.registerComponent('loader-3dtiles', {
 
     this.viewportSize = new Vector2(sceneEl.clientWidth, sceneEl.clientHeight);
     window.addEventListener('resize', this.onWindowResize.bind(this));
-
   },
   onWindowResize: function () {
     const sceneEl = this.el.sceneEl;
