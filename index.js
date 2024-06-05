@@ -32,7 +32,7 @@ AFRAME.registerComponent('loader-3dtiles', {
     googleApiKey: { type: 'string' },
     lat: { type: 'number' },
     long: { type: 'number' },
-    height: { type: 'number' },
+    height: { type: 'number', default: 0 },
     copyrightEl: { type: 'selector' }
   },
   init: async function () {
@@ -143,11 +143,7 @@ AFRAME.registerComponent('loader-3dtiles', {
     }
 
     // set parameters for google 3dtiles API
-    if (this.data.lat && this.data.long && this.data.height) {
-      // eslint-disable-next-line no-unused-vars
-      const { model, runtime } = await this._initTileset();
-
-      console.log(this.data.lat, this.data.long, this.data.height);
+    if (this.data.lat && this.data.long || this.data.height) {
       this.runtime.orientToGeocoord({
         lat: Number(this.data.lat),
         long: Number(this.data.long),
