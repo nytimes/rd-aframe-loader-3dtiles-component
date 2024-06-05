@@ -1,4 +1,4 @@
-import { Loader3DTiles, PointCloudColoring } from 'three-loader-3dtiles';
+import { Loader3DTiles, PointCloudColoring } from './dist/three-loader-3dtiles';
 import './textarea';
 import { Vector2, Vector3 } from 'three';
 
@@ -148,7 +148,6 @@ AFRAME.registerComponent('loader-3dtiles', {
       const { model, runtime } = await this._initTileset();
 
       console.log(this.data.lat, this.data.long, this.data.height);
-
       this.runtime.orientToGeocoord({
         lat: Number(this.data.lat),
         long: Number(this.data.long),
