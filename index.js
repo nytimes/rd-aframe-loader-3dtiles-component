@@ -163,7 +163,7 @@ AFRAME.registerComponent('loader-3dtiles', {
     }
   },
   tick: function (t, dt) {
-    if (this.runtime) {
+    if (this.runtime && this.viewportSize) {
       this.runtime.update(dt, this.viewportSize, this.camera);
       if (this.stats) {
         const worldPos = new Vector3();
