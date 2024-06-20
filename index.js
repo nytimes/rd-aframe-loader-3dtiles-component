@@ -107,6 +107,13 @@ AFRAME.registerComponent('loader-3dtiles', {
 
     this.viewportSize = new Vector2(sceneEl.clientWidth, sceneEl.clientHeight);
     window.addEventListener('resize', this.onWindowResize.bind(this));
+
+    if (AFRAME.INSPECTOR && AFRAME.INSPECTOR.opened) {
+      // set active inspector camera
+      this.camera = AFRAME.INSPECTOR.camera;
+      // emit play event to start load tiles in aframe-inspector
+      this.play();
+    }
   },
   onWindowResize: function () {
     const sceneEl = this.el.sceneEl;
