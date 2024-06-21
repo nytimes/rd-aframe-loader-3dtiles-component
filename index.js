@@ -43,7 +43,7 @@ AFRAME.registerComponent('loader-3dtiles', {
     if (!this.camera) {
       throw new Error('3D Tiles: Please add an active camera or specify the target camera via the cameraEl property');
     }
-    
+
     this.viewportSize = new Vector2(sceneEl.clientWidth, sceneEl.clientHeight);
 
     const { model, runtime } = await this._initTileset();
