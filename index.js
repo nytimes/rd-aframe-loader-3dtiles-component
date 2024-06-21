@@ -1,4 +1,4 @@
-import { Loader3DTiles, PointCloudColoring } from 'three-loader-3dtiles';
+import { Loader3DTiles, PointCloudColoring } from './dist/three-loader-3dtiles';
 import './textarea';
 import { Vector2, Vector3 } from 'three';
 
@@ -43,6 +43,8 @@ AFRAME.registerComponent('loader-3dtiles', {
     if (!this.camera) {
       throw new Error('3D Tiles: Please add an active camera or specify the target camera via the cameraEl property');
     }
+    
+    this.viewportSize = new Vector2(sceneEl.clientWidth, sceneEl.clientHeight);
 
     const { model, runtime } = await this._initTileset();
 
@@ -105,8 +107,14 @@ AFRAME.registerComponent('loader-3dtiles', {
     this.runtime = runtime;
     this.runtime.setElevationRange(data.pointcloudElevationRange.map(n => Number(n)));
 
-    this.viewportSize = new Vector2(sceneEl.clientWidth, sceneEl.clientHeight);
     window.addEventListener('resize', this.onWindowResize.bind(this));
+
+    if (AFRAME.INSPECTOR && AFRAME.INSPECTOR.opened) {
+      // set active inspector camera
+      this.camera = AFRAME.INSPECTOR.camera;
+      // emit play event to start load tiles in aframe-inspector
+      this.play();
+    }
   },
   onWindowResize: function () {
     const sceneEl = this.el.sceneEl;
