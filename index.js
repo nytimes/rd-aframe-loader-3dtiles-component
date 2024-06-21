@@ -43,6 +43,8 @@ AFRAME.registerComponent('loader-3dtiles', {
     if (!this.camera) {
       throw new Error('3D Tiles: Please add an active camera or specify the target camera via the cameraEl property');
     }
+    
+    this.viewportSize = new Vector2(sceneEl.clientWidth, sceneEl.clientHeight);
 
     const { model, runtime } = await this._initTileset();
 
@@ -105,7 +107,6 @@ AFRAME.registerComponent('loader-3dtiles', {
     this.runtime = runtime;
     this.runtime.setElevationRange(data.pointcloudElevationRange.map(n => Number(n)));
 
-    this.viewportSize = new Vector2(sceneEl.clientWidth, sceneEl.clientHeight);
     window.addEventListener('resize', this.onWindowResize.bind(this));
 
     if (AFRAME.INSPECTOR && AFRAME.INSPECTOR.opened) {
@@ -163,7 +164,7 @@ AFRAME.registerComponent('loader-3dtiles', {
     }
   },
   tick: function (t, dt) {
-    if (this.runtime && this.viewportSize) {
+    if (this.runtime) {
       this.runtime.update(dt, this.viewportSize, this.camera);
       if (this.stats) {
         const worldPos = new Vector3();
