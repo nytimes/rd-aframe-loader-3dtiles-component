@@ -155,7 +155,7 @@ AFRAME.registerComponent('loader-3dtiles', {
     }
 
     // set parameters for google 3dtiles API
-    if (this.data.lat && this.data.long || this.data.height) {
+    if ((this.data.lat && this.data.long) || this.data.height) {
       this.runtime.orientToGeocoord({
         lat: Number(this.data.lat),
         long: Number(this.data.long),
