@@ -52,11 +52,6 @@ AFRAME.registerComponent('loader-3dtiles', {
 
     this.originalCamera = this.camera;
 
-    if (AFRAME.INSPECTOR && AFRAME.INSPECTOR.opened) {
-      // set active inspector camera
-      this.camera = AFRAME.INSPECTOR.camera;
-    }
-
     sceneEl.addEventListener('camera-set-active', (e) => {
       // TODO: For some reason after closing the inspector this event is fired with an empty camera,
       // so revert to the original camera used.
