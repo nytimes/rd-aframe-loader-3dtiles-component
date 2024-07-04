@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>A-Frame 3D Tiles Component Raycaster</title>
+  <meta name="description" content="Basic example for 3D Tiles component">
+  </meta>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="../../dist/aframe-loader-3dtiles-component.js"></script>
+
+  <style>
+    #data-attribution {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      padding: 10px;
+      font-size: 14px;
+      background-color: rgba(0, 0, 0, 0.3);
+      color: white;
+      z-index: 1;
+    }
+
+    #googleLogo {
+      display: inline;
+      font-style: normal;
+      font-size: 16px;
+      line-height: 16px;
+      padding: 16px;
+      letter-spacing: 0.0575em;
+      /* 0.69px */
+      color: #FFFFFF;
+    }
+  </style>
+
+  <script>
+    AFRAME.registerComponent('collider-check', {
+      dependencies: ['raycaster'],
+
+      init: function () {
+        this.el.addEventListener('raycaster-intersection', function (event) {
+          console.log('Collider event', event);
+          console.log('Collided els:', event.detail.els);
+        });
+      }
+    });
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+</head>
+
+<body>
+  <div id="data-attribution">
+    <div id="googleLogo">Google</div>
+    <span id="copyright"></span>
+  </div>
+
+  <a-scene renderer="colorManagement: true; physicallyCorrectLights: true; anisotropy: 16;" reflection>
+
+    <a-entity id="raycaster" raycaster="showLine: true" collider-check rotation="-90 0 0" position="0 10 0"></a-entity>
+    <a-box position="0 0 0" color="red" width="0.1" height="0.1" depth="0.1"></a-box>
+
+    <a-camera id="camera" position="0 1.6 2"></a-camera>
+
+    <a-entity id="reference-layers">
+      <a-entity id="tileset" data-no-pause loader-3dtiles="
+          url: https://tile.googleapis.com/v1/3dtiles/root.json; 
+          lat: 37.77522354250163;
+          long: -122.41931773049723;
+          height: -16.5;
+          googleApiKey: AIzaSyDI557E8HZHoh5ETqIrlmt8d0C4HfyiCG8;
+          maximumSSE: 48;
+          maximumMem: 400;
+          copyrightEl: #copyright;">
+      </a-entity>
+
+    </a-entity>
+
+  </a-scene>
+</body>
+
+</html>
