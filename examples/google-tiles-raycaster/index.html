@@ -8,6 +8,7 @@
   </meta>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="../../dist/aframe-loader-3dtiles-component.js"></script>
+  <script src="tiles-raycaster-simple.js"></script>
 
   <style>
     #data-attribution {
@@ -57,7 +58,8 @@
 
   <a-scene renderer="colorManagement: true; physicallyCorrectLights: true; anisotropy: 16;" reflection>
 
-    <a-entity id="raycaster" raycaster="showLine: true" collider-check rotation="-90 0 0" position="0 10 0"></a-entity>
+    <!-- <a-entity id="raycaster" raycaster="showLine: true" collider-check rotation="-90 0 0" position="0 10 0"></a-entity> -->
+    <a-entity id="tiles-raycaster" tiles-raycaster-simple="interval: 1000;"></a-entity>
     <a-box position="0 0 0" color="red" width="0.1" height="0.1" depth="0.1"></a-box>
 
     <a-camera id="camera" position="0 1.6 2"></a-camera>
@@ -65,9 +67,10 @@
     <a-entity id="reference-layers">
       <a-entity id="tileset" data-no-pause loader-3dtiles="
           url: https://tile.googleapis.com/v1/3dtiles/root.json; 
-          lat: 37.77522354250163;
-          long: -122.41931773049723;
-          height: -16.5;
+          lat: 48.4069835;
+          long: -114.3008482;
+          height: 1000.0;
+          geoTransform: WGS84Cartesian;
           googleApiKey: AIzaSyAQshwLVKTpwTfPJxFEkEzOdP_cgmixTCQ;
           maximumSSE: 48;
           maximumMem: 400;
