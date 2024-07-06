@@ -25,8 +25,8 @@ AFRAME.registerComponent('tiles-raycaster-simple', {
   },
 
   /**
-           * Update list of objects to test for intersection
-           */
+             * Update list of objects to test for intersection
+             */
   refreshObjects: function () {
     function getVisibleMeshes (object) {
       const visibleMeshes = [];
@@ -55,8 +55,8 @@ AFRAME.registerComponent('tiles-raycaster-simple', {
   },
 
   /**
-           * Check for intersections on an interval.
-           */
+             * Check for intersections on an interval.
+             */
   tock: function (time) {
     const data = this.data;
     const prevCheckTime = this.prevCheckTime;
@@ -90,6 +90,7 @@ AFRAME.registerComponent('tiles-raycaster-simple', {
       console.log('intersections', intersections.length);
       console.log('intersection[0].distance', intersections[0]?.distance);
       this.needToAdjustHeight = false;
+      document.querySelector('#cameraRig').setAttribute('rotation', '0 0 0');
     }
   }
 });
