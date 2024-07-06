@@ -1,72 +1,58 @@
 /* global AFRAME */
 
-const registerComponent = AFRAME.registerComponent;
-const THREE = AFRAME.THREE;
-const utils = AFRAME.utils;
-
 /**
- * Raycaster component.
- *
- * Pass options to three.js Raycaster including which objects to test.
- * Poll for intersections.
- * Emit event on origin entity and on target entity on intersect.
- *
- * @member {array} objects - Cached list of meshes to intersect.
- * @member {number} prevCheckTime - Previous time intersection was checked. To help interval.
- * @member {object} raycaster - three.js Raycaster.
+ * 3d tiles Raycaster component based on A-Frame Raycaster component
  */
 AFRAME.registerComponent('tiles-raycaster-simple', {
   schema: {
     direction: { type: 'vec3', default: { x: 0, y: -1, z: 0 } }, // down
-    interval: { default: 0 },
-    objects: { default: '' },
-    origin: { type: 'vec3', default: { x: 0, y: 0, z: 0 } } // raycast from here
+    interval: { default: 1000 },
+    origin: { type: 'vec3', default: { x: 0, y: 0, z: 0 } }, // raycast from here
+    tilesetSelector: { default: '#tileset', type: 'selector' }
   },
   init: function () {
     this.intersections = [];
-    this.objects = [];
-    this.prevCheckTime = undefined;
+    this.objects = []; // Cached list of meshes to intersect.
+    this.prevCheckTime = undefined; // Previous time intersection was checked. To help interval.
     this.rawIntersections = [];
-    this.raycaster = new THREE.Raycaster();
-    const data = this.data;
-
-    this.raycaster.set(data.origin, data.direction);
+    // init three.js raycaster and set origin and direction
+    this.raycaster = new AFRAME.THREE.Raycaster();
+    this.raycaster.set(this.data.origin, this.data.direction);
   },
 
   /**
-     * Update list of objects to test for intersection.
-     */
+         * Update list of objects to test for intersection
+         */
   refreshObjects: function () {
-    // get object3d of 3dtiles entity
-    const tilesetChildren = document.querySelector('#tileset').object3D?.children;
-    const allMeshs = [];
-    console.log(tilesetChildren);
-
-    tilesetChildren?.forEach(d => {
-      if (!d.visible) {
-        return;
+    function getVisibleMeshes (object) {
+      const visibleMeshes = [];
+      if (!object.visible) {
+        return visibleMeshes;
       }
-      d.traverse(e => {
-        if (e.isMesh) {
-          allMeshs.push(e);
-        }
+      if (object.isMesh) {
+        visibleMeshes.push(object);
+      }
+      object.children.forEach(child => {
+        visibleMeshes.push(...getVisibleMeshes(child));
       });
-    });
-    console.log('allMeshs', allMeshs);
-    // const intersects = this.raycaster.intersectObjects(allMeshs)
-    // if (!intersects.length) {
-    //   return null
-    // }
-    // return intersects[0].point
+      return visibleMeshes;
+    }
 
-    // this.objects = this.flattenObject3DMaps(els);
-    this.objects = allMeshs;
-    console.log(this.objects);
+    // get children of object3d of 3dtiles entity
+    const tilesetChildren = this.data.tilesetSelector.object3D?.children;
+    const visibleMeshes = [];
+
+    tilesetChildren?.forEach(object => {
+      visibleMeshes.push(...getVisibleMeshes(object));
+    });
+    console.log('visibleTileMeshes', visibleMeshes.length, 'totalTileMeshes', tilesetChildren[0]?.children.length);
+
+    this.objects = visibleMeshes;
   },
 
   /**
-     * Check for intersections and cleared intersections on an interval.
-     */
+         * Check for intersections on an interval.
+         */
   tock: function (time) {
     const data = this.data;
     const prevCheckTime = this.prevCheckTime;
@@ -76,33 +62,20 @@ AFRAME.registerComponent('tiles-raycaster-simple', {
 
     // Update check time.
     this.prevCheckTime = time;
+    this.refreshObjects();
     this.checkIntersections();
   },
 
   /**
-     * Raycast for intersections and emit events for current and cleared intersections.
-     */
+         * Raycast for intersections
+         */
   checkIntersections: function () {
-    const el = this.el;
-    const data = this.data;
-    let i;
     const intersections = this.intersections;
 
     // Raycast.
     intersections.length = 0;
-    console.log('this.objects', this.objects.length);
     this.raycaster.intersectObjects(this.objects, true, intersections);
-    console.log('intersections', intersections);
+    console.log('intersections', intersections.length);
+    console.log('intersection[0].distance', intersections[0]?.distance);
   }
 });
-
-/**
- * Copy contents of one array to another without allocating new array.
- */
-function copyArray (a, b) {
-  let i;
-  a.length = b.length;
-  for (i = 0; i < b.length; i++) {
-    a[i] = b[i];
-  }
-}
