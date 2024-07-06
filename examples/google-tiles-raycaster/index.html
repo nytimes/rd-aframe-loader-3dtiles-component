@@ -62,14 +62,14 @@
     <a-entity id="tiles-raycaster" tiles-raycaster-simple></a-entity>
     <a-box position="0 0 0" color="red" width="0.1" height="0.1" depth="0.1"></a-box>
 
-    <a-camera id="camera" position="0 1.6 2"></a-camera>
-
+    <a-entity id="cameraRig" position="0 1.6 0" rotation="-90 0 0">
+      <a-camera id="camera"></a-camera>
+    </a-entity>
     <a-entity id="reference-layers">
       <a-entity id="tileset" data-no-pause loader-3dtiles="
           url: https://tile.googleapis.com/v1/3dtiles/root.json; 
           lat: 48.4069835;
           long: -114.3008482;
-          height: 1000.0;
           geoTransform: WGS84Cartesian;
           googleApiKey: AIzaSyAQshwLVKTpwTfPJxFEkEzOdP_cgmixTCQ;
           maximumSSE: 48;
