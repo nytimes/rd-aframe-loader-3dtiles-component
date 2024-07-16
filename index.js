@@ -1,6 +1,6 @@
-import { Loader3DTiles, PointCloudColoring } from './dist/three-loader-3dtiles';
+import { Loader3DTiles, PointCloudColoring } from 'three-loader-3dtiles';
 import './textarea';
-import { Vector2, Vector3 } from 'three';
+import { Vector3 } from 'three';
 
 if (typeof AFRAME === 'undefined') {
   throw new Error('Component attempted to register before AFRAME was available.');
@@ -44,12 +44,17 @@ AFRAME.registerComponent('loader-3dtiles', {
       throw new Error('3D Tiles: Please add an active camera or specify the target camera via the cameraEl property');
     }
 
-    this.viewportSize = new Vector2(sceneEl.clientWidth, sceneEl.clientHeight);
+    this.viewport = {
+      width: sceneEl.clientWidth,
+      height: sceneEl.clientHeight,
+      devicePixelRatio: window.devicePixelRatio
+    };
 
     const { model, runtime } = await this._initTileset();
 
     this.el.setObject3D('tileset', model);
 
+    this.runtime = runtime;
     this.originalCamera = this.camera;
 
     sceneEl.addEventListener('camera-set-active', (e) => {
@@ -72,6 +77,7 @@ AFRAME.registerComponent('loader-3dtiles', {
           this.camera.position.y = 10; // default value for ortho camera in Editor
         }
       }
+      this.runtime.setViewport(this.viewport);
     });
 
     sceneEl.addEventListener('enter-vr', (e) => {
@@ -118,9 +124,14 @@ AFRAME.registerComponent('loader-3dtiles', {
   },
   onWindowResize: function () {
     const sceneEl = this.el.sceneEl;
-    this.viewportSize.set(sceneEl.clientWidth, sceneEl.clientHeight);
     this.camera.aspect = sceneEl.clientWidth / sceneEl.clientHeight;
     this.camera.updateProjectionMatrix();
+    this.viewport = {
+      width: sceneEl.clientWidth,
+      height: sceneEl.clientHeight,
+      devicePixelRatio: window.devicePixelRatio
+    };
+    this.runtime.setViewport(this.viewport);
   },
   update: async function (oldData) {
     if (oldData.url !== this.data.url) {
@@ -160,7 +171,7 @@ AFRAME.registerComponent('loader-3dtiles', {
   },
   tick: function (t, dt) {
     if (this.runtime) {
-      this.runtime.update(dt, this.viewportSize, this.camera);
+      this.runtime.update(dt, this.camera);
       if (this.stats) {
         const worldPos = new Vector3();
         this.camera.getWorldPosition(worldPos);
@@ -211,7 +222,8 @@ AFRAME.registerComponent('loader-3dtiles', {
         viewDistanceScale: this.data.distanceScale,
         wireframe: this.data.wireframe,
         updateTransforms: true
-      }
+      },
+      viewport: this.viewport
     });
   },
   _initStats: function () {
