@@ -1,4 +1,4 @@
-import { Loader3DTiles, PointCloudColoring } from 'three-loader-3dtiles';
+import { Loader3DTiles, PointCloudColoring } from './lib/three-loader-3dtiles';
 import './textarea';
 import { Vector3 } from 'three';
 
