@@ -5,6 +5,7 @@
   "main": "index.js",
   "unpkg": "dist/aframe-loader-3dtiles-component.min.js",
   "scripts": {
+    "convert": "node index.js",
     "dist": "npm run dist:min && npm run dist:max",
     "dist:max": "webpack",
     "dist:min": "cross-env NODE_ENV=production webpack",
@@ -104,5 +105,9 @@
     "three": "^0.160.1",
     "trim-newlines": ">=3.0.1",
     "xmldom": "github:xmldom/xmldom#0.7.0"
+  },
+  "directories": {
+    "example": "examples",
+    "test": "tests"
   }
 }
