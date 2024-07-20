@@ -1,0 +1,38 @@
+import json
+import sys
+
+def convert_region_to_box(tileset_path, output_path):
+    with open(tileset_path, 'r') as f:
+        tileset = json.load(f)
+    
+    def convert_tile(tile):
+        if 'boundingVolume' in tile and 'region' in tile['boundingVolume']:
+            region = tile['boundingVolume']['region']
+            west, south, east, north, min_height, max_height = region
+            
+            center_x = (west + east) / 2
+            center_y = (south + north) / 2
+            center_z = (min_height + max_height) / 2
+            
+            half_width = (east - west) / 2
+            half_height = (north - south) / 2
+            half_depth = (max_height - min_height) / 2
+            
+            box = [center_x, center_y, center_z, half_width, 0, 0, 0, half_height, 0, 0, 0, half_depth]
+            tile['boundingVolume'] = {'box': box}
+        
+        if 'children' in tile:
+            for child in tile['children']:
+                convert_tile(child)
+    
+    convert_tile(tileset['root'])
+    
+    with open(output_path, 'w') as f:
+        json.dump(tileset, f, indent=2)
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: python convert_region_to_box.py <input_tileset.json> <output_tileset.json>")
+        sys.exit(1)
+
+    convert_region_to_box(sys.argv[1], sys.argv[2])
